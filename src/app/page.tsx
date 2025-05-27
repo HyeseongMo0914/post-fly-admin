@@ -1,7 +1,22 @@
+"use client";
+
 import Image from "next/image";
 import styles from "./page.module.css";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
+  const checkLogin = async () => {
+    const res = await fetch("/api/auth/check");
+    const data = await res.json();
+    if (data.ok) {
+      router.push("/list");
+    } else {
+      alert(data.message);
+    }
+  };
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -13,20 +28,15 @@ export default function Home() {
           height={38}
           priority
         />
-        <ol>
+        {/* <ol>
           <li>
             Get started by editing <code>src/app/page.tsx</code>.
           </li>
           <li>Save and see your changes instantly.</li>
-        </ol>
+        </ol> */}
 
         <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a className={styles.primary} onClick={checkLogin}>
             <Image
               className={styles.logo}
               src="/vercel.svg"
@@ -34,19 +44,14 @@ export default function Home() {
               width={20}
               height={20}
             />
-            Deploy now
+            Go To List
           </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
+          <a href="/login" className={styles.secondary}>
+            Go To Login
           </a>
         </div>
       </main>
-      <footer className={styles.footer}>
+      {/* <footer className={styles.footer}>
         <a
           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
           target="_blank"
@@ -89,7 +94,7 @@ export default function Home() {
           />
           Go to nextjs.org →
         </a>
-      </footer>
+      </footer> */}
     </div>
   );
 }
