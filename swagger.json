@@ -1,0 +1,1639 @@
+{
+  "schemes": [],
+  "swagger": "2.0",
+  "info": {
+    "description": "This is a sample server Petstore server.",
+    "title": "Swagger Example API",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.swagger.io/support",
+      "email": "support@swagger.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0"
+  },
+  "host": "api.postfly.kr",
+  "basePath": "",
+  "paths": {
+    "/admin/v1/packing": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Packing",
+        "responses": {
+          "200": {
+            "description": "패키지 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.ListPackingResponse"
+            }
+          }
+        }
+      }
+    },
+    "/admin/v1/packing/bulk": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Update the status of a Packing",
+        "parameters": [
+          {
+            "description": "Request body",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dto.UpdatePackingStatusRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "404": {
+            "description": "Packing not found",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          }
+        }
+      }
+    },
+    "/admin/v1/presigned/read/bulk": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Object"
+        ],
+        "summary": "Bulk Get Read Presigned URLs",
+        "parameters": [
+          {
+            "description": "Bulk Read Presigned URL 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.BulkGetReadPresignedURLRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bulk Read Presigned URL 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.BulkGetReadPresignedURLResponse"
+            }
+          }
+        }
+      }
+    },
+    "/countries": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Deprecated: (v2 사용하세요)",
+        "deprecated": true,
+        "responses": {
+          "200": {
+            "description": "응답값",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delivery-fee": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Deprecated: (v2 사용하세요)",
+        "deprecated": true,
+        "parameters": [
+          {
+            "type": "string",
+            "example": "Australia",
+            "name": "countryName",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "example": "1x1x1",
+            "name": "volume",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "number",
+            "example": 8.5,
+            "name": "weight",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.PackingDeliveryFeeResponse"
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "User"
+        ],
+        "summary": "GetUser",
+        "responses": {
+          "200": {
+            "description": "응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.GetUserInfoResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "User"
+        ],
+        "summary": "DeleteUser",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "User"
+        ],
+        "summary": "PatchUser",
+        "parameters": [
+          {
+            "description": "요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.PatchUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/users/check": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "User"
+        ],
+        "summary": "CheckUser",
+        "parameters": [
+          {
+            "description": "요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.CheckUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.CheckUserResponse"
+            }
+          }
+        }
+      }
+    },
+    "/users/sign-up/sns": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "User"
+        ],
+        "summary": "CreateUser",
+        "parameters": [
+          {
+            "description": "유저 프로필 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.SignUpSNSRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "유저 프로필 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.SignUpSNSResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/packing": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Packing",
+        "responses": {
+          "200": {
+            "description": "패키지 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.ListPackingResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Packing",
+        "parameters": [
+          {
+            "description": "패키지 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.CreatePackingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "패키지 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.PackingDTO"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Update the status of a Packing",
+        "parameters": [
+          {
+            "description": "Request body",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdatePackingStatusRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "404": {
+            "description": "Packing not found",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          }
+        }
+      }
+    },
+    "/v1/packing/bulk": {
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Update the status of a Packing",
+        "parameters": [
+          {
+            "description": "Request body",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdatePackingStatusRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "404": {
+            "description": "Packing not found",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          }
+        }
+      }
+    },
+    "/v1/packing/details": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Create PackingDetail under a Packing",
+        "parameters": [
+          {
+            "description": "요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.CreatePackingDetailRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "패키지 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.CreatePackingDetailResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Delete PackingDetail by PackingDetailID",
+        "parameters": [
+          {
+            "description": "요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.DeletePackingDetailRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "404": {
+            "description": "Packing or PackingDetail not found",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          }
+        }
+      }
+    },
+    "/v1/packing/details/item-detail": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Update ItemDetail by PackingDetailID",
+        "parameters": [
+          {
+            "description": "요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdatePackingDetailItemDetailRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          }
+        }
+      }
+    },
+    "/v1/packing/details/tracking-inform": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Update TrackingInfo and ItemDetail by PackingDetailID",
+        "parameters": [
+          {
+            "description": "요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdatePackingDetailTrackingInfoRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          }
+        }
+      }
+    },
+    "/v1/packing/forwarding-service/address": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Retrieve the forwarding service address",
+        "responses": {
+          "200": {
+            "description": "Forwarding service address",
+            "schema": {
+              "$ref": "#/definitions/dto.ForwardingServiceAddressResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          }
+        }
+      }
+    },
+    "/v1/packing/receiver-inform": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Packing",
+        "parameters": [
+          {
+            "description": "패키지 수신자 정보 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdatePackingReceiverInfoRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/packing/sender-inform": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Packing",
+        "parameters": [
+          {
+            "description": "패키지 발신자 정보 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdatePackingSenderInfoRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/presigned/read": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Object"
+        ],
+        "summary": "GetReadPresignedURL",
+        "parameters": [
+          {
+            "description": "Presigned URL 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.GetReadPresignedURLRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presigned URL 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.GetReadPresignedURLResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/presigned/read/bulk": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Object"
+        ],
+        "summary": "Bulk Get Read Presigned URLs",
+        "parameters": [
+          {
+            "description": "Bulk Read Presigned URL 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.BulkGetReadPresignedURLRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bulk Read Presigned URL 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.BulkGetReadPresignedURLResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/presigned/write": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Object"
+        ],
+        "summary": "CreatePresignedURL",
+        "parameters": [
+          {
+            "description": "Presigned URL 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.CreatePresignedURLRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presigned URL 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.CreatePresignedURLResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/presigned/write/bulk": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Object"
+        ],
+        "summary": "Bulk Create Write/Read Presigned URLs",
+        "parameters": [
+          {
+            "description": "Bulk Presigned URL 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.BulkCreatePresignedURLRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bulk Presigned URL 응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.BulkCreatePresignedURLResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v2/countries": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Deprecated: (v3 사용하세요)",
+        "deprecated": true,
+        "responses": {
+          "200": {
+            "description": "응답값",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/delivery-fee": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Packing",
+        "parameters": [
+          {
+            "type": "string",
+            "example": "A",
+            "name": "domainCode",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "example": "1x1x1",
+            "name": "volume",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "number",
+            "example": 8.5,
+            "name": "weight",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "응답값",
+            "schema": {
+              "$ref": "#/definitions/dto.PackingDeliveryFeeResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v3/countries": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Packing",
+        "responses": {
+          "200": {
+            "description": "응답값",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "domain.PackingStatus": {
+      "type": "string",
+      "enum": [
+        "CREATED",
+        "REQUESTED",
+        "TRANSIT",
+        "DELIVERED"
+      ],
+      "x-enum-varnames": [
+        "PackingStatusCreated",
+        "PackingStatusPending",
+        "PackingStatusInTransit",
+        "PackingStatusDelivered"
+      ]
+    },
+    "dto.AddressDTO": {
+      "type": "object",
+      "properties": {
+        "address1": {
+          "type": "string"
+        },
+        "address2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "postcode": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.BulkCreatePresignedURLRequest": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        }
+      }
+    },
+    "dto.BulkCreatePresignedURLResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.CreatePresignedURLResponse"
+          }
+        }
+      }
+    },
+    "dto.BulkGetReadPresignedURLRequest": {
+      "type": "object",
+      "required": [
+        "paths"
+      ],
+      "properties": {
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "dto.BulkGetReadPresignedURLResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.GetReadPresignedURLResponse"
+          }
+        }
+      }
+    },
+    "dto.CheckUserRequest": {
+      "type": "object",
+      "required": [
+        "provider",
+        "socialAccessToken"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "example": "KAKAO, APPLE, GOOGLE, NAVER, FACEBOOK"
+        },
+        "socialAccessToken": {
+          "type": "string",
+          "example": "socialAccessToken"
+        }
+      }
+    },
+    "dto.CheckUserResponse": {
+      "type": "object",
+      "required": [
+        "isExist"
+      ],
+      "properties": {
+        "isExist": {
+          "type": "boolean",
+          "example": true
+        },
+        "userInfo": {
+          "$ref": "#/definitions/dto.GetUserInfoResponse"
+        }
+      }
+    },
+    "dto.CreatePackingDetailRequest": {
+      "type": "object",
+      "required": [
+        "packingID"
+      ],
+      "properties": {
+        "itemDetails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.ItemDetailDTO"
+          }
+        },
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        },
+        "trackingInfo": {
+          "$ref": "#/definitions/dto.TrackingInfoDTO"
+        }
+      }
+    },
+    "dto.CreatePackingDetailResponse": {
+      "type": "object",
+      "required": [
+        "packingDetailID"
+      ],
+      "properties": {
+        "itemDetail": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.ItemDetailDTO"
+          }
+        },
+        "packingDetailID": {
+          "type": "string",
+          "example": "packingDetailID"
+        },
+        "trackingInfo": {
+          "$ref": "#/definitions/dto.TrackingInfoDTO"
+        }
+      }
+    },
+    "dto.CreatePackingRequest": {
+      "type": "object",
+      "required": [
+        "shippingCountryCode"
+      ],
+      "properties": {
+        "shippingCountryCode": {
+          "type": "string",
+          "example": "AU"
+        }
+      }
+    },
+    "dto.CreatePresignedURLRequest": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.CreatePresignedURLResponse": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "readURL": {
+          "type": "string"
+        },
+        "writeURL": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.DeletePackingDetailRequest": {
+      "type": "object",
+      "required": [
+        "packingDetailID",
+        "packingID"
+      ],
+      "properties": {
+        "packingDetailID": {
+          "type": "string",
+          "example": "packingDetailID"
+        },
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        }
+      }
+    },
+    "dto.ForwardingServiceAddressResponse": {
+      "type": "object",
+      "required": [
+        "address"
+      ],
+      "properties": {
+        "address": {
+          "type": "string",
+          "example": "address"
+        }
+      }
+    },
+    "dto.GetReadPresignedURLRequest": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.GetReadPresignedURLResponse": {
+      "type": "object",
+      "properties": {
+        "readURL": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.GetUserInfoResponse": {
+      "type": "object",
+      "required": [
+        "customerNumber",
+        "email",
+        "name",
+        "userID"
+      ],
+      "properties": {
+        "customerNumber": {
+          "type": "string",
+          "example": "customerNumber"
+        },
+        "defaultReceiverInfo": {
+          "$ref": "#/definitions/dto.ReceiverInfoDTO"
+        },
+        "defaultSenderInfo": {
+          "$ref": "#/definitions/dto.SenderInfoDTO"
+        },
+        "email": {
+          "type": "string",
+          "example": "email"
+        },
+        "name": {
+          "type": "string",
+          "example": "name"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "example": "010-1234-5678"
+        },
+        "userID": {
+          "type": "string",
+          "example": "userID"
+        }
+      }
+    },
+    "dto.ItemDetailDTO": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "itemName": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "quantity": {
+          "type": "integer"
+        }
+      }
+    },
+    "dto.ListPackingResponse": {
+      "type": "object",
+      "properties": {
+        "packings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.PackingDTO"
+          }
+        }
+      }
+    },
+    "dto.PackingDTO": {
+      "type": "object",
+      "required": [
+        "packingID",
+        "shippingCountryCode",
+        "status"
+      ],
+      "properties": {
+        "packingDetails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.PackingDetailDTO"
+          }
+        },
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        },
+        "receiverInfo": {
+          "$ref": "#/definitions/dto.ReceiverInfoDTO"
+        },
+        "senderInfo": {
+          "$ref": "#/definitions/dto.SenderInfoDTO"
+        },
+        "shippingCountryCode": {
+          "type": "string",
+          "example": "AU"
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/domain.PackingStatus"
+            }
+          ],
+          "example": "packing"
+        }
+      }
+    },
+    "dto.PackingDeliveryFeeResponse": {
+      "type": "object",
+      "required": [
+        "deliveryFee",
+        "dhlDeliveryFee",
+        "dhlServiceType",
+        "fedexDeliveryFee",
+        "fedexServiceType"
+      ],
+      "properties": {
+        "deliveryFee": {
+          "type": "number",
+          "example": 10000
+        },
+        "dhlDeliveryFee": {
+          "type": "number",
+          "example": 10000
+        },
+        "dhlServiceType": {
+          "type": "string",
+          "example": "특송 (Express) - DHL Express Worldwide"
+        },
+        "fedexDeliveryFee": {
+          "type": "number",
+          "example": 10000
+        },
+        "fedexServiceType": {
+          "type": "string",
+          "example": "특송 (Express) - FEDEX Internation Priority"
+        }
+      }
+    },
+    "dto.PackingDetailDTO": {
+      "type": "object",
+      "required": [
+        "packingDetailID"
+      ],
+      "properties": {
+        "itemDetail": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.ItemDetailDTO"
+          }
+        },
+        "packingDetailID": {
+          "type": "string",
+          "example": "packingDetailID"
+        },
+        "trackingInfo": {
+          "$ref": "#/definitions/dto.TrackingInfoDTO"
+        }
+      }
+    },
+    "dto.PatchUserRequest": {
+      "type": "object",
+      "properties": {
+        "phoneNumber": {
+          "description": "Name  string `json:\"name\" validate:\"required\" example:\"name\"`\nEmail string `json:\"email\" validate:\"required\" example:\"email\"`",
+          "type": "string",
+          "example": "010-1234-5678"
+        }
+      }
+    },
+    "dto.ReceiverInfoDTO": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "$ref": "#/definitions/dto.AddressDTO"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.SenderInfoDTO": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.SignUpSNSRequest": {
+      "type": "object",
+      "required": [
+        "accessToken",
+        "provider"
+      ],
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "example": "access_token"
+        },
+        "provider": {
+          "type": "string",
+          "example": "KAKAO, APPLE, GOOGLE, NAVER, FACEBOOK"
+        }
+      }
+    },
+    "dto.SignUpSNSResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "userID": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.TrackingInfoDTO": {
+      "type": "object",
+      "properties": {
+        "carrier": {
+          "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trackingNumber": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.UpdatePackingDetailItemDetailRequest": {
+      "type": "object",
+      "required": [
+        "packingDetailID",
+        "packingID"
+      ],
+      "properties": {
+        "itemDetails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.ItemDetailDTO"
+          }
+        },
+        "packingDetailID": {
+          "type": "string",
+          "example": "packingDetailID"
+        },
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        }
+      }
+    },
+    "dto.UpdatePackingDetailTrackingInfoRequest": {
+      "type": "object",
+      "required": [
+        "packingDetailID",
+        "packingID"
+      ],
+      "properties": {
+        "packingDetailID": {
+          "type": "string",
+          "example": "packingDetailID"
+        },
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        },
+        "trackingInfo": {
+          "$ref": "#/definitions/dto.TrackingInfoDTO"
+        }
+      }
+    },
+    "dto.UpdatePackingReceiverInfoRequest": {
+      "type": "object",
+      "required": [
+        "packingID"
+      ],
+      "properties": {
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        },
+        "receiverInfo": {
+          "$ref": "#/definitions/dto.ReceiverInfoDTO"
+        },
+        "saveDefaultReceiver": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "dto.UpdatePackingSenderInfoRequest": {
+      "type": "object",
+      "required": [
+        "packingID"
+      ],
+      "properties": {
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        },
+        "senderInfo": {
+          "$ref": "#/definitions/dto.SenderInfoDTO"
+        }
+      }
+    },
+    "dto.UpdatePackingStatusRequest": {
+      "type": "object",
+      "required": [
+        "packingID",
+        "status"
+      ],
+      "properties": {
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/domain.PackingStatus"
+            }
+          ],
+          "example": "CREATED,REQUESTED,TRANSIT,DELIVERED"
+        }
+      }
+    },
+    "pkg.Response": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "data": {},
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}
