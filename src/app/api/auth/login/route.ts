@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       );
     } else {
       const res = NextResponse.json({ ok: true });
-      res.cookies.set("accessToken", process.env.POSTFLY_API_KEY || "", {
+      res.cookies.set("X-Swagger-Key", process.env.POSTFLY_API_KEY || "", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",

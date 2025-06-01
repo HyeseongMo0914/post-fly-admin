@@ -5,7 +5,7 @@ export async function GET(request: Request) {
     const cookies = request.headers.get("cookie");
     const accessToken = cookies
       ?.split("; ")
-      .find((row) => row.startsWith("accessToken="))
+      .find((row) => row.startsWith("X-Swagger-Key="))
       ?.split("=")[1];
 
     if (!accessToken) {

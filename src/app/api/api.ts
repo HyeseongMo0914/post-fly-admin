@@ -1,9 +1,6 @@
-import "react-native-get-random-values";
-
 import axios, { AxiosError } from "axios";
 import axiosRetry from "axios-retry";
 import { v4 as uuidv4 } from "uuid";
-import { cookies } from "next/headers";
 
 const durationMap = new Map<string, number>();
 export const api = axios.create({
