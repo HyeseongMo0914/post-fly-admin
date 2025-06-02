@@ -1,6 +1,13 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  memo,
+  Suspense,
+} from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import "react-data-grid/lib/styles.css";
 import { DataGrid, type Column, type ColSpanArgs } from "react-data-grid";
@@ -483,7 +490,7 @@ const PackingDetailGrid = memo(
 
 PackingDetailGrid.displayName = "PackingDetailGrid";
 
-const ListPage = () => {
+const ListPageContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -823,6 +830,14 @@ const ListPage = () => {
         enableVirtualization={true}
       />
     </Container>
+  );
+};
+
+const ListPage = () => {
+  return (
+    <Suspense fallback={<div>로딩 중...</div>}>
+      <ListPageContent />
+    </Suspense>
   );
 };
 
