@@ -33,6 +33,32 @@ const baseColumns = [
   { key: "senderPhone", name: "발신자 전화번호", width: 150 },
   { key: "senderEmail", name: "발신자 이메일", width: 200 },
   { key: "itemCount", name: "아이템 수", width: 100 },
+  { key: "measuredWeight", name: "무게 (kg)", width: 100 },
+  {
+    key: "outboundTrackingInfo",
+    name: "운송장 정보",
+    width: 250,
+    renderCell({ row }: { row: PackingRow }) {
+      if (row.type === "DETAIL" || !row.outboundTrackingInfo) return "-";
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div>운송사: {row.outboundTrackingInfo.carrier || "-"}</div>
+          <div>
+            운송장번호: {row.outboundTrackingInfo.trackingNumber || "-"}
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    key: "shippingFee",
+    name: "배송비 (원)",
+    width: 150,
+    renderCell({ row }: { row: PackingRow }) {
+      if (row.type === "DETAIL" || row.shippingFee === null) return "-";
+      return row.shippingFee.toLocaleString("ko-KR");
+    },
+  },
 ];
 
 type PackingRow =
@@ -49,6 +75,12 @@ type PackingRow =
       senderPhone: string;
       senderEmail: string;
       itemCount: number;
+      measuredWeight: number | null;
+      outboundTrackingInfo: {
+        carrier: string | null;
+        trackingNumber: string | null;
+      } | null;
+      shippingFee: number | null;
       expanded: boolean;
     }
   | {
@@ -119,6 +151,15 @@ const StatusOptionsContainer = styled.div`
   min-width: 200px;
 `;
 
+const StatusOptionText = styled.span`
+  color: #0056b3;
+`;
+
+const ShippingInfoContainer = styled(StatusOptionsContainer)`
+  min-width: 300px;
+  padding: 16px;
+`;
+
 const StatusOptionButton = styled.button`
   padding: 8px 16px;
   border: 1px solid #ddd;
@@ -128,10 +169,6 @@ const StatusOptionButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
-
-  &:hover {
-    background: #f5f5f5;
-  }
 `;
 
 const ConfirmModal = styled.div`
@@ -295,6 +332,65 @@ const ItemLabel = styled.span`
 const ItemValue = styled.span`
   color: #333;
 `;
+
+const InputGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+`;
+
+const Input = styled.input`
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+`;
+
+const Label = styled.label`
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+`;
+
+const RedText = styled.span`
+  color: red;
+`;
+
+const convertStatus = (status: DomainPackingStatus) => {
+  switch (status) {
+    case DomainPackingStatus.PackingStatusAddingItems:
+      return "물품 담는중";
+    case DomainPackingStatus.PackingStatusPackingRequested:
+      return "포장요청";
+    case DomainPackingStatus.PackingStatusPackingDone:
+      return "포장완료";
+    case DomainPackingStatus.PackingStatusPaymentCompleted:
+      return "결제완료";
+    case DomainPackingStatus.PackingStatusTransit:
+      return "배송중";
+    case DomainPackingStatus.PackingStatusDelivered:
+      return "배송완료";
+    case DomainPackingStatus.PackingStatusChangeRequested:
+      return "변경요청";
+    case DomainPackingStatus.PackingStatusCanceled:
+      return "취소완료";
+    default:
+      return status;
+  }
+};
 
 const PackingDetailGrid = memo(
   ({ packingDetails }: { packingDetails?: DtoPackingDetailDTO[] }) => {
@@ -476,7 +572,7 @@ const PackingDetailGrid = memo(
           rowKeyGetter={(row) =>
             `${row.packingDetailID}-${row.itemDetail?.itemName || ""}`
           }
-          rowHeight={(row) => (row.itemDetail ? 120 : 45)}
+          rowHeight={(row) => (row.itemDetail ? 160 : 45)}
         />
         {selectedImage && (
           <ImageModal onClick={() => setSelectedImage(null)}>
@@ -499,13 +595,31 @@ const ListPageContent = () => {
   const [packingStatus, setPackingStatus] = useState<DomainPackingStatus>(
     () => {
       const status = searchParams.get("status") as DomainPackingStatus;
-      return status || DomainPackingStatus.PackingStatusPending;
+      return status || DomainPackingStatus.PackingStatusAddingItems;
     }
   );
   const [showStatusOptions, setShowStatusOptions] = useState(false);
   const [selectedNewStatus, setSelectedNewStatus] =
     useState<DomainPackingStatus | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showShippingInfo, setShowShippingInfo] = useState(false);
+  const [showTrackingInfo, setShowTrackingInfo] = useState(false);
+  const [shippingInfo, setShippingInfo] = useState({
+    measuredWeight: "",
+    shippingFee: "",
+  });
+  const [trackingInfo, setTrackingInfo] = useState({
+    carrier: "",
+    trackingNumber: "",
+  });
+
+  const formatNumber = (value: string) => {
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  const removeCommas = (value: string) => {
+    return value.replace(/,/g, "");
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -574,6 +688,88 @@ const ListPageContent = () => {
     },
   });
 
+  const { mutate: updateShippingInfo } = useMutation({
+    mutationFn: async () => {
+      const selectedPacking = data?.data?.packings?.find(
+        (packing) => packing.packingID === Array.from(selectedRows)[0]
+      );
+
+      const response = await fetch("/api/pack/shipping-inform", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          {
+            packingID: Array.from(selectedRows)[0],
+            measuredWeight: shippingInfo.measuredWeight
+              ? Number(shippingInfo.measuredWeight)
+              : selectedPacking?.measuredWeight || undefined,
+            shippingFee: shippingInfo.shippingFee
+              ? Number(removeCommas(shippingInfo.shippingFee))
+              : selectedPacking?.shippingFee || undefined,
+            outboundTrackingInfo:
+              selectedPacking?.outboundTrackingInfo || undefined,
+          },
+        ]),
+      });
+      if (!response.ok) {
+        throw new Error("배송 정보 업데이트에 실패했습니다.");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["packList"] });
+      setSelectedRows(new Set());
+      setSelectAll(false);
+      setShowShippingInfo(false);
+      setShippingInfo({ measuredWeight: "", shippingFee: "" });
+    },
+    onError: (error) => {
+      alert(error.message);
+    },
+  });
+
+  const { mutate: updateTrackingInfo } = useMutation({
+    mutationFn: async () => {
+      const selectedPacking = data?.data?.packings?.find(
+        (packing) => packing.packingID === Array.from(selectedRows)[0]
+      );
+
+      const response = await fetch("/api/pack/shipping-inform", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          {
+            packingID: Array.from(selectedRows)[0],
+            measuredWeight: selectedPacking?.measuredWeight || undefined,
+            shippingFee: selectedPacking?.shippingFee || undefined,
+            outboundTrackingInfo: {
+              carrier: trackingInfo.carrier,
+              trackingNumber: trackingInfo.trackingNumber,
+            },
+          },
+        ]),
+      });
+      if (!response.ok) {
+        throw new Error("운송장 정보 업데이트에 실패했습니다.");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["packList"] });
+      setSelectedRows(new Set());
+      setSelectAll(false);
+      setShowTrackingInfo(false);
+      setTrackingInfo({ carrier: "", trackingNumber: "" });
+    },
+    onError: (error) => {
+      alert(error.message);
+    },
+  });
+
   const [rows, setRows] = useState<PackingRow[]>([]);
 
   useEffect(() => {
@@ -599,6 +795,15 @@ const ListPageContent = () => {
         senderPhone: packing.senderInfo?.phone || "-",
         senderEmail: packing.senderInfo?.email || "-",
         itemCount: packing.packingDetails?.length || 0,
+        measuredWeight: packing.measuredWeight || null,
+        outboundTrackingInfo: packing.outboundTrackingInfo
+          ? {
+              carrier: packing.outboundTrackingInfo.carrier || null,
+              trackingNumber:
+                packing.outboundTrackingInfo.trackingNumber || null,
+            }
+          : null,
+        shippingFee: packing.shippingFee || null,
         expanded: false,
       }));
       setRows(masterRows);
@@ -761,6 +966,22 @@ const ListPageContent = () => {
     }
   };
 
+  const handleShippingInfoSubmit = () => {
+    if (!shippingInfo.measuredWeight || !shippingInfo.shippingFee) {
+      alert("모든 필드를 입력해주세요.");
+      return;
+    }
+    updateShippingInfo();
+  };
+
+  const handleTrackingInfoSubmit = () => {
+    if (!trackingInfo.carrier || !trackingInfo.trackingNumber) {
+      alert("모든 필드를 입력해주세요.");
+      return;
+    }
+    updateTrackingInfo();
+  };
+
   if (isLoading) {
     return <div>로딩 중...</div>;
   }
@@ -774,15 +995,41 @@ const ListPageContent = () => {
             isActive={packingStatus === status}
             onClick={() => handleStatusChange(status)}
           >
-            {status}
+            {convertStatus(status)}
           </StatusButton>
         ))}
         <div style={{ position: "relative" }}>
           <StatusChangeButton
             isDisabled={selectedRows.size === 0}
-            onClick={() => setShowStatusOptions(!showStatusOptions)}
+            onClick={() => {
+              setShowStatusOptions(!showStatusOptions);
+              setShowShippingInfo(false);
+              setShowTrackingInfo(false);
+            }}
           >
             상태 변경
+          </StatusChangeButton>
+          <StatusChangeButton
+            isDisabled={selectedRows.size === 0}
+            onClick={() => {
+              setShowShippingInfo(!showShippingInfo);
+              setShowStatusOptions(false);
+              setShowTrackingInfo(false);
+            }}
+            style={{ marginLeft: "8px" }}
+          >
+            패킹정보 입력
+          </StatusChangeButton>
+          <StatusChangeButton
+            isDisabled={selectedRows.size === 0}
+            onClick={() => {
+              setShowTrackingInfo(!showTrackingInfo);
+              setShowStatusOptions(false);
+              setShowShippingInfo(false);
+            }}
+            style={{ marginLeft: "8px" }}
+          >
+            운송장 정보 입력
           </StatusChangeButton>
           {showStatusOptions && selectedRows.size > 0 && (
             <StatusOptionsContainer>
@@ -793,10 +1040,92 @@ const ListPageContent = () => {
                     key={status}
                     onClick={() => handleStatusUpdate(status)}
                   >
-                    {status}로 변경
+                    <StatusOptionText>{convertStatus(status)}</StatusOptionText>
+                    로 변경
                   </StatusOptionButton>
                 ))}
             </StatusOptionsContainer>
+          )}
+          {showShippingInfo && selectedRows.size > 0 && (
+            <ShippingInfoContainer>
+              <InputGroup>
+                <Label>무게 (kg)</Label>
+                <Input
+                  type="number"
+                  value={shippingInfo.measuredWeight}
+                  onChange={(e) =>
+                    setShippingInfo((prev) => ({
+                      ...prev,
+                      measuredWeight: e.target.value,
+                    }))
+                  }
+                  placeholder="무게를 입력하세요"
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>배송비용 (원)</Label>
+                <Input
+                  type="text"
+                  value={formatNumber(shippingInfo.shippingFee)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    setShippingInfo((prev) => ({
+                      ...prev,
+                      shippingFee: value,
+                    }));
+                  }}
+                  placeholder="배송비용을 입력하세요"
+                />
+              </InputGroup>
+              <ButtonGroup>
+                <CancelButton onClick={() => setShowShippingInfo(false)}>
+                  취소
+                </CancelButton>
+                <ConfirmButton onClick={handleShippingInfoSubmit}>
+                  저장
+                </ConfirmButton>
+              </ButtonGroup>
+            </ShippingInfoContainer>
+          )}
+          {showTrackingInfo && selectedRows.size > 0 && (
+            <ShippingInfoContainer>
+              <InputGroup>
+                <Label>택배사</Label>
+                <Input
+                  type="text"
+                  value={trackingInfo.carrier}
+                  onChange={(e) =>
+                    setTrackingInfo((prev) => ({
+                      ...prev,
+                      carrier: e.target.value,
+                    }))
+                  }
+                  placeholder="택배사를 입력하세요"
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>운송장 번호</Label>
+                <Input
+                  type="text"
+                  value={trackingInfo.trackingNumber}
+                  onChange={(e) =>
+                    setTrackingInfo((prev) => ({
+                      ...prev,
+                      trackingNumber: e.target.value,
+                    }))
+                  }
+                  placeholder="운송장 번호를 입력하세요"
+                />
+              </InputGroup>
+              <ButtonGroup>
+                <CancelButton onClick={() => setShowTrackingInfo(false)}>
+                  취소
+                </CancelButton>
+                <ConfirmButton onClick={handleTrackingInfoSubmit}>
+                  저장
+                </ConfirmButton>
+              </ButtonGroup>
+            </ShippingInfoContainer>
           )}
         </div>
       </StatusFilter>
@@ -805,7 +1134,8 @@ const ListPageContent = () => {
           <ConfirmModalContent>
             <h3>상태 변경 확인</h3>
             <p>
-              선택한 {selectedRows.size}개의 팩킹을 {selectedNewStatus} 상태로
+              선택한 {selectedRows.size}개의 팩킹을{" "}
+              <RedText>{convertStatus(selectedNewStatus)}</RedText> 상태로
               변경하시겠습니까?
             </p>
             <ConfirmModalButtons>

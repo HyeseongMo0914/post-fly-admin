@@ -11,10 +11,14 @@
  */
 
 export enum DomainPackingStatus {
-  PackingStatusCreated = "CREATED",
-  PackingStatusPending = "REQUESTED",
-  PackingStatusInTransit = "TRANSIT",
+  PackingStatusAddingItems = "ADDING_ITEMS",
+  PackingStatusPackingRequested = "PACKING_REQUESTED",
+  PackingStatusPackingDone = "PACKING_DONE",
+  PackingStatusPaymentCompleted = "PAYMENT_COMPLETED",
+  PackingStatusTransit = "TRANSIT",
   PackingStatusDelivered = "DELIVERED",
+  PackingStatusChangeRequested = "CHANGE_REQUESTED",
+  PackingStatusCanceled = "CANCELED",
 }
 
 export interface DtoAddressDTO {
@@ -132,7 +136,18 @@ export interface DtoListPackingResponse {
   packings?: DtoPackingDTO[];
 }
 
+export interface DtoOutboundTrackingInfoDTO {
+  /** @example "carrier" */
+  carrier: string;
+  /** @example "trackingNumber" */
+  trackingNumber: string;
+}
+
 export interface DtoPackingDTO {
+  history?: DtoPackingHistoryDTO[];
+  /** @example 8.5 */
+  measuredWeight?: number;
+  outboundTrackingInfo?: DtoOutboundTrackingInfoDTO;
   packingDetails?: DtoPackingDetailDTO[];
   /** @example "packingID" */
   packingID: string;
@@ -140,6 +155,10 @@ export interface DtoPackingDTO {
   senderInfo?: DtoSenderInfoDTO;
   /** @example "AU" */
   shippingCountryCode: string;
+  /** @example 10000 */
+  shippingFee?: number;
+  /** @example "AUD" */
+  shippingFeeCurrency?: string;
   /** @example "packing" */
   status: DomainPackingStatus;
 }
@@ -162,6 +181,13 @@ export interface DtoPackingDetailDTO {
   /** @example "packingDetailID" */
   packingDetailID: string;
   trackingInfo?: DtoTrackingInfoDTO;
+}
+
+export interface DtoPackingHistoryDTO {
+  /** @example "2023-01-01T00:00:00Z" */
+  createdAt: string;
+  /** @example "CREATED,REQUESTED,TRANSIT,DELIVERED" */
+  status: DomainPackingStatus;
 }
 
 export interface DtoPatchUserRequest {
@@ -235,6 +261,18 @@ export interface DtoUpdatePackingSenderInfoRequest {
   /** @example "packingID" */
   packingID: string;
   senderInfo?: DtoSenderInfoDTO;
+}
+
+export interface DtoUpdatePackingShippingInfoRequest {
+  /** @example 8.5 */
+  measuredWeight?: number;
+  outboundTrackingInfo?: DtoOutboundTrackingInfoDTO;
+  /** @example "packingID" */
+  packingID: string;
+  /** @example 10000 */
+  shippingFee?: number;
+  /** @example "Won" */
+  shippingFeeCurrency?: string;
 }
 
 export interface DtoUpdatePackingStatusRequest {
@@ -541,6 +579,28 @@ export class Api<
       this.request<void, PkgResponse>({
         path: `/admin/v1/packing/bulk`,
         method: "PATCH",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Packing
+     * @name V1PackingShippingInformBulkUpdate
+     * @summary Update the shipping information of a Packing
+     * @request PUT:/admin/v1/packing/shipping-inform/bulk
+     * @secure
+     */
+    v1PackingShippingInformBulkUpdate: (
+      request: DtoUpdatePackingShippingInfoRequest[],
+      params: RequestParams = {},
+    ) =>
+      this.request<void, PkgResponse>({
+        path: `/admin/v1/packing/shipping-inform/bulk`,
+        method: "PUT",
         body: request,
         secure: true,
         type: ContentType.Json,

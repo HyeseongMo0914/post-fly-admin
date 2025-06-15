@@ -71,8 +71,6 @@ export async function PATCH(request: Request) {
 
     const requestBody = await request.json();
 
-    console.log("🚀 ~ requestBody", requestBody);
-
     if (!Array.isArray(requestBody) || requestBody.length === 0) {
       return NextResponse.json(
         { ok: false, message: "팩 정보 목록이 필요합니다." },

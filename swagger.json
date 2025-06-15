@@ -96,6 +96,59 @@
         }
       }
     },
+    "/admin/v1/packing/shipping-inform/bulk": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Update the shipping information of a Packing",
+        "parameters": [
+          {
+            "description": "Request body",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dto.UpdatePackingShippingInfoRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "404": {
+            "description": "Packing not found",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pkg.Response"
+            }
+          }
+        }
+      }
+    },
     "/admin/v1/presigned/read/bulk": {
       "post": {
         "security": [
@@ -1026,16 +1079,24 @@
     "domain.PackingStatus": {
       "type": "string",
       "enum": [
-        "CREATED",
-        "REQUESTED",
+        "ADDING_ITEMS",
+        "PACKING_REQUESTED",
+        "PACKING_DONE",
+        "PAYMENT_COMPLETED",
         "TRANSIT",
-        "DELIVERED"
+        "DELIVERED",
+        "CHANGE_REQUESTED",
+        "CANCELED"
       ],
       "x-enum-varnames": [
-        "PackingStatusCreated",
-        "PackingStatusPending",
-        "PackingStatusInTransit",
-        "PackingStatusDelivered"
+        "PackingStatusAddingItems",
+        "PackingStatusPackingRequested",
+        "PackingStatusPackingDone",
+        "PackingStatusPaymentCompleted",
+        "PackingStatusTransit",
+        "PackingStatusDelivered",
+        "PackingStatusChangeRequested",
+        "PackingStatusCanceled"
       ]
     },
     "dto.AddressDTO": {
@@ -1332,6 +1393,23 @@
         }
       }
     },
+    "dto.OutboundTrackingInfoDTO": {
+      "type": "object",
+      "required": [
+        "carrier",
+        "trackingNumber"
+      ],
+      "properties": {
+        "carrier": {
+          "type": "string",
+          "example": "carrier"
+        },
+        "trackingNumber": {
+          "type": "string",
+          "example": "trackingNumber"
+        }
+      }
+    },
     "dto.PackingDTO": {
       "type": "object",
       "required": [
@@ -1340,6 +1418,19 @@
         "status"
       ],
       "properties": {
+        "history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.PackingHistoryDTO"
+          }
+        },
+        "measuredWeight": {
+          "type": "number",
+          "example": 8.5
+        },
+        "outboundTrackingInfo": {
+          "$ref": "#/definitions/dto.OutboundTrackingInfoDTO"
+        },
         "packingDetails": {
           "type": "array",
           "items": {
@@ -1359,6 +1450,14 @@
         "shippingCountryCode": {
           "type": "string",
           "example": "AU"
+        },
+        "shippingFee": {
+          "type": "number",
+          "example": 10000
+        },
+        "shippingFeeCurrency": {
+          "type": "string",
+          "example": "AUD"
         },
         "status": {
           "allOf": [
@@ -1420,6 +1519,27 @@
         },
         "trackingInfo": {
           "$ref": "#/definitions/dto.TrackingInfoDTO"
+        }
+      }
+    },
+    "dto.PackingHistoryDTO": {
+      "type": "object",
+      "required": [
+        "createdAt",
+        "status"
+      ],
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "example": "2023-01-01T00:00:00Z"
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/domain.PackingStatus"
+            }
+          ],
+          "example": "CREATED,REQUESTED,TRANSIT,DELIVERED"
         }
       }
     },
@@ -1592,6 +1712,33 @@
         },
         "senderInfo": {
           "$ref": "#/definitions/dto.SenderInfoDTO"
+        }
+      }
+    },
+    "dto.UpdatePackingShippingInfoRequest": {
+      "type": "object",
+      "required": [
+        "packingID"
+      ],
+      "properties": {
+        "measuredWeight": {
+          "type": "number",
+          "example": 8.5
+        },
+        "outboundTrackingInfo": {
+          "$ref": "#/definitions/dto.OutboundTrackingInfoDTO"
+        },
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        },
+        "shippingFee": {
+          "type": "number",
+          "example": 10000
+        },
+        "shippingFeeCurrency": {
+          "type": "string",
+          "example": "Won"
         }
       }
     },
