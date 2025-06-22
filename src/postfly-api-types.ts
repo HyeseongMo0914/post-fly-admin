@@ -96,6 +96,11 @@ export interface DtoDeletePackingDetailRequest {
   packingID: string;
 }
 
+export interface DtoDeletePackingRequest {
+  /** @example "packingID" */
+  packingID: string;
+}
+
 export interface DtoForwardingServiceAddressResponse {
   /** @example "address" */
   address: string;
@@ -134,6 +139,19 @@ export interface DtoItemDetailDTO {
 
 export interface DtoListPackingResponse {
   packings?: DtoPackingDTO[];
+  pagination?: DtoPagination;
+}
+
+export interface DtoListPackingsAdminResponse {
+  packings?: DtoPackingDTO[];
+  pagination?: DtoPagination;
+}
+
+export interface DtoListUsersResponse {
+  page?: number;
+  size?: number;
+  total?: number;
+  users: DtoGetUserInfoResponse[];
 }
 
 export interface DtoOutboundTrackingInfoDTO {
@@ -188,6 +206,12 @@ export interface DtoPackingHistoryDTO {
   createdAt: string;
   /** @example "CREATED,REQUESTED,TRANSIT,DELIVERED" */
   status: DomainPackingStatus;
+}
+
+export interface DtoPagination {
+  page?: number;
+  size?: number;
+  total?: number;
 }
 
 export interface DtoPatchUserRequest {
@@ -554,10 +578,49 @@ export class Api<
      * @request GET:/admin/v1/packing
      * @secure
      */
-    v1PackingList: (params: RequestParams = {}) =>
-      this.request<DtoListPackingResponse, any>({
+    v1PackingList: (
+      query?: {
+        /**
+         * Name                 *string               `query:"name" example:"name"`
+         * CustomerID           *string               `query:"customerID"`
+         * @example "2023-01-01T00:00:00Z"
+         */
+        greaterThanCreatedAt?: string;
+        /** @example "2023-01-01T00:00:00Z" */
+        lessThanCreatedAt?: string;
+        /**
+         * Filter
+         * @example "packingID"
+         */
+        packingID?: string;
+        /** @example "CREATED,REQUESTED,TRANSIT,DELIVERED" */
+        packingStatus?:
+          | "ADDING_ITEMS"
+          | "PACKING_REQUESTED"
+          | "PACKING_DONE"
+          | "PAYMENT_COMPLETED"
+          | "TRANSIT"
+          | "DELIVERED"
+          | "CHANGE_REQUESTED"
+          | "CANCELED";
+        /**
+         * Pagination
+         * @default 1
+         * @example 1
+         */
+        page?: number;
+        /**
+         * @default 20
+         * @example 20
+         */
+        size?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<DtoListPackingsAdminResponse, any>({
         path: `/admin/v1/packing`,
         method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,
@@ -629,51 +692,40 @@ export class Api<
         format: "json",
         ...params,
       }),
-  };
-  countries = {
+
     /**
      * No description
      *
-     * @tags Packing
-     * @name CountriesList
-     * @summary Deprecated: (v2 사용하세요)
-     * @request GET:/countries
-     * @deprecated
+     * @tags User
+     * @name V1UsersList
+     * @summary ListUsers
+     * @request GET:/admin/v1/users
      * @secure
      */
-    countriesList: (params: RequestParams = {}) =>
-      this.request<string[], any>({
-        path: `/countries`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-  };
-  deliveryFee = {
-    /**
-     * No description
-     *
-     * @tags Packing
-     * @name DeliveryFeeList
-     * @summary Deprecated: (v2 사용하세요)
-     * @request GET:/delivery-fee
-     * @deprecated
-     * @secure
-     */
-    deliveryFeeList: (
-      query: {
-        /** @example "Australia" */
-        countryName: string;
-        /** @example "1x1x1" */
-        volume: string;
-        /** @example 8.5 */
-        weight: number;
+    v1UsersList: (
+      query?: {
+        /** @example "customerNumber" */
+        customerNumber?: string;
+        /**
+         * Filter by
+         * @example "John Doe"
+         */
+        name?: string;
+        /**
+         * @default 1
+         * @example 1
+         */
+        page?: number;
+        /**
+         * @default 20
+         * @example 20
+         */
+        size?: number;
       },
       params: RequestParams = {},
     ) =>
-      this.request<DtoPackingDeliveryFeeResponse, any>({
-        path: `/delivery-fee`,
+      this.request<DtoListUsersResponse, any>({
+        path: `/admin/v1/users`,
         method: "GET",
         query: query,
         secure: true,
@@ -792,10 +844,44 @@ export class Api<
      * @request GET:/v1/packing
      * @secure
      */
-    packingList: (params: RequestParams = {}) =>
+    packingList: (
+      query?: {
+        /**
+         * Filter
+         * @example "2023-01-01T00:00:00Z"
+         */
+        greaterThanCreatedAt?: string;
+        /** @example "2023-01-01T00:00:00Z" */
+        lessThanCreatedAt?: string;
+        /** @example "packingID" */
+        packingID?: string;
+        /** @example "CREATED,REQUESTED,TRANSIT,DELIVERED" */
+        packingStatus?:
+          | "ADDING_ITEMS"
+          | "PACKING_REQUESTED"
+          | "PACKING_DONE"
+          | "PAYMENT_COMPLETED"
+          | "TRANSIT"
+          | "DELIVERED"
+          | "CHANGE_REQUESTED"
+          | "CANCELED";
+        /**
+         * @default 1
+         * @example 1
+         */
+        page?: number;
+        /**
+         * @default 20
+         * @example 20
+         */
+        size?: number;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<DtoListPackingResponse, any>({
         path: `/v1/packing`,
         method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,
@@ -821,6 +907,28 @@ export class Api<
         secure: true,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Packing
+     * @name PackingDelete
+     * @summary Packing
+     * @request DELETE:/v1/packing
+     * @secure
+     */
+    packingDelete: (
+      request: DtoDeletePackingRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/v1/packing`,
+        method: "DELETE",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
         ...params,
       }),
 
@@ -1112,25 +1220,6 @@ export class Api<
       }),
   };
   v2 = {
-    /**
-     * No description
-     *
-     * @tags Packing
-     * @name CountriesList
-     * @summary Deprecated: (v3 사용하세요)
-     * @request GET:/v2/countries
-     * @deprecated
-     * @secure
-     */
-    countriesList: (params: RequestParams = {}) =>
-      this.request<string[], any>({
-        path: `/v2/countries`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
     /**
      * No description
      *

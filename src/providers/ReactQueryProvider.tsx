@@ -1,10 +1,14 @@
-'use client';
+"use client";
 
 // Next.js 13 이상에서는 'use client' 지시문을 사용하여 클라이언트 컴포넌트를 명시합니다.
 // QueryClientProvider는 React context를 사용하므로 클라이언트 컴포넌트로 선언해야 합니다.
 
-import React from 'react';
-import {isServer, QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import React from "react";
+import {
+  isServer,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 
 // QueryClient 생성 함수
 function makeQueryClient() {
@@ -13,7 +17,14 @@ function makeQueryClient() {
       queries: {
         // Next.js의 SSR과 함께 사용할 때, 클라이언트에서 즉시 리페치하는 것을 방지하기 위해
         // staleTime을 설정합니다.
-        staleTime: 60 * 1000,
+        staleTime: 5 * 60 * 1000, // 5분으로 증가
+        gcTime: 10 * 60 * 1000, // 10분으로 증가 (이전 cacheTime)
+        refetchOnWindowFocus: false, // 윈도우 포커스 시 리페치 비활성화
+        refetchOnReconnect: false, // 네트워크 재연결 시 리페치 비활성화
+        retry: 1, // 재시도 횟수 감소
+      },
+      mutations: {
+        retry: 1, // 뮤테이션 재시도 횟수도 감소
       },
     },
   });
@@ -41,11 +52,17 @@ function getQueryClient() {
  * Next.js 13+ App Router에서 사용할 수 있도록 설계되었습니다.
  * @see https://tanstack.com/query/v5/docs/framework/react/guides/advanced-ssr
  */
-export function ReactQueryProviders({children}: {children: React.ReactNode}) {
+export function ReactQueryProviders({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   // QueryClient 초기화
   // useState를 사용하지 않는 이유는 Suspense 경계가 없을 때 React가 일시 중단되면
   // 클라이언트를 버릴 수 있기 때문입니다.
   const queryClient = getQueryClient();
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }

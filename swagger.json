@@ -33,11 +33,74 @@
           "Packing"
         ],
         "summary": "Packing",
+        "parameters": [
+          {
+            "type": "string",
+            "example": "2023-01-01T00:00:00Z",
+            "description": "Name                 *string               `query:\"name\" example:\"name\"`\nCustomerID           *string               `query:\"customerID\"`",
+            "name": "greaterThanCreatedAt",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "2023-01-01T00:00:00Z",
+            "name": "lessThanCreatedAt",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "packingID",
+            "description": "Filter",
+            "name": "packingID",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "ADDING_ITEMS",
+              "PACKING_REQUESTED",
+              "PACKING_DONE",
+              "PAYMENT_COMPLETED",
+              "TRANSIT",
+              "DELIVERED",
+              "CHANGE_REQUESTED",
+              "CANCELED"
+            ],
+            "type": "string",
+            "example": "CREATED,REQUESTED,TRANSIT,DELIVERED",
+            "x-enum-varnames": [
+              "PackingStatusAddingItems",
+              "PackingStatusPackingRequested",
+              "PackingStatusPackingDone",
+              "PackingStatusPaymentCompleted",
+              "PackingStatusTransit",
+              "PackingStatusDelivered",
+              "PackingStatusChangeRequested",
+              "PackingStatusCanceled"
+            ],
+            "name": "packingStatus",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "example": 1,
+            "description": "Pagination",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "example": 20,
+            "name": "size",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "패키지 응답값",
             "schema": {
-              "$ref": "#/definitions/dto.ListPackingResponse"
+              "$ref": "#/definitions/dto.ListPackingsAdminResponse"
             }
           }
         }
@@ -184,7 +247,7 @@
         }
       }
     },
-    "/countries": {
+    "/admin/v1/users": {
       "get": {
         "security": [
           {
@@ -195,66 +258,43 @@
           "application/json"
         ],
         "tags": [
-          "Packing"
+          "User"
         ],
-        "summary": "Deprecated: (v2 사용하세요)",
-        "deprecated": true,
-        "responses": {
-          "200": {
-            "description": "응답값",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/delivery-fee": {
-      "get": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Packing"
-        ],
-        "summary": "Deprecated: (v2 사용하세요)",
-        "deprecated": true,
+        "summary": "ListUsers",
         "parameters": [
           {
             "type": "string",
-            "example": "Australia",
-            "name": "countryName",
-            "in": "query",
-            "required": true
+            "example": "customerNumber",
+            "name": "customerNumber",
+            "in": "query"
           },
           {
             "type": "string",
-            "example": "1x1x1",
-            "name": "volume",
-            "in": "query",
-            "required": true
+            "example": "John Doe",
+            "description": "Filter by",
+            "name": "name",
+            "in": "query"
           },
           {
-            "type": "number",
-            "example": 8.5,
-            "name": "weight",
-            "in": "query",
-            "required": true
+            "type": "integer",
+            "default": 1,
+            "example": 1,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "example": 20,
+            "name": "size",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "응답값",
             "schema": {
-              "$ref": "#/definitions/dto.PackingDeliveryFeeResponse"
+              "$ref": "#/definitions/dto.ListUsersResponse"
             }
           }
         }
@@ -420,6 +460,67 @@
           "Packing"
         ],
         "summary": "Packing",
+        "parameters": [
+          {
+            "type": "string",
+            "example": "2023-01-01T00:00:00Z",
+            "description": "Filter",
+            "name": "greaterThanCreatedAt",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "2023-01-01T00:00:00Z",
+            "name": "lessThanCreatedAt",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "packingID",
+            "name": "packingID",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "ADDING_ITEMS",
+              "PACKING_REQUESTED",
+              "PACKING_DONE",
+              "PAYMENT_COMPLETED",
+              "TRANSIT",
+              "DELIVERED",
+              "CHANGE_REQUESTED",
+              "CANCELED"
+            ],
+            "type": "string",
+            "example": "CREATED,REQUESTED,TRANSIT,DELIVERED",
+            "x-enum-varnames": [
+              "PackingStatusAddingItems",
+              "PackingStatusPackingRequested",
+              "PackingStatusPackingDone",
+              "PackingStatusPaymentCompleted",
+              "PackingStatusTransit",
+              "PackingStatusDelivered",
+              "PackingStatusChangeRequested",
+              "PackingStatusCanceled"
+            ],
+            "name": "packingStatus",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "example": 1,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "example": 20,
+            "name": "size",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "패키지 응답값",
@@ -459,6 +560,39 @@
             "schema": {
               "$ref": "#/definitions/dto.PackingDTO"
             }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Packing"
+        ],
+        "summary": "Packing",
+        "parameters": [
+          {
+            "description": "패키지 요청값",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.DeletePackingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "204": {
+            "description": "No Content"
           }
         }
       },
@@ -972,34 +1106,6 @@
         }
       }
     },
-    "/v2/countries": {
-      "get": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Packing"
-        ],
-        "summary": "Deprecated: (v3 사용하세요)",
-        "deprecated": true,
-        "responses": {
-          "200": {
-            "description": "응답값",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
     "/v2/delivery-fee": {
       "get": {
         "security": [
@@ -1294,6 +1400,18 @@
         }
       }
     },
+    "dto.DeletePackingRequest": {
+      "type": "object",
+      "required": [
+        "packingID"
+      ],
+      "properties": {
+        "packingID": {
+          "type": "string",
+          "example": "packingID"
+        }
+      }
+    },
     "dto.ForwardingServiceAddressResponse": {
       "type": "object",
       "required": [
@@ -1389,6 +1507,46 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/dto.PackingDTO"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/dto.Pagination"
+        }
+      }
+    },
+    "dto.ListPackingsAdminResponse": {
+      "type": "object",
+      "properties": {
+        "packings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.PackingDTO"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/dto.Pagination"
+        }
+      }
+    },
+    "dto.ListUsersResponse": {
+      "type": "object",
+      "required": [
+        "users"
+      ],
+      "properties": {
+        "page": {
+          "type": "integer"
+        },
+        "size": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dto.GetUserInfoResponse"
           }
         }
       }
@@ -1540,6 +1698,20 @@
             }
           ],
           "example": "CREATED,REQUESTED,TRANSIT,DELIVERED"
+        }
+      }
+    },
+    "dto.Pagination": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer"
+        },
+        "size": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
         }
       }
     },

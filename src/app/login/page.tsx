@@ -2,36 +2,45 @@
 "use client";
 
 import styled from "@emotion/styled";
-import LoginForm from "../../components/LoginForm";
-import { useRouter } from "next/navigation";
+import { useAtom } from "jotai";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Layout from "@/components/Layout";
+import LoginForm from "../../components/LoginForm";
+import { authAtom, checkAuthAtom } from "@/atoms/authAtom";
 
-export default function LoginPage() {
+const LoginPage = () => {
+  const [auth] = useAtom(authAtom);
+  const [, checkAuth] = useAtom(checkAuthAtom);
   const router = useRouter();
 
   useEffect(() => {
-    const checkLogin = async () => {
-      const res = await fetch("/api/auth/check");
-      const data = await res.json();
-      if (data.ok) {
-        alert("이미 로그인 되었습니다.");
-        router.push("/");
-      }
-    };
+    if (!auth.isChecked) {
+      checkAuth();
+    }
+  }, [checkAuth, auth.isChecked]);
 
-    checkLogin();
-  }, [router]);
+  useEffect(() => {
+    if (auth.isLoggedIn) {
+      router.push("/");
+    }
+  }, [auth.isLoggedIn, router]);
 
   return (
-    <Container>
-      <LoginForm />
-    </Container>
+    <Layout showSidebar={false}>
+      <Container>
+        <LoginForm />
+      </Container>
+    </Layout>
   );
-}
+};
 
 const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 `;
+
+export default LoginPage;

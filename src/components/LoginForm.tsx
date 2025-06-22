@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { useRouter } from "next/navigation";
+import { useAtom } from "jotai";
+import { loginAtom } from "@/atoms/authAtom";
 
 const FormContainer = styled.div`
   display: flex;
@@ -35,6 +37,7 @@ const Button = styled.button`
 
 const LoginForm = () => {
   const router = useRouter();
+  const [, login] = useAtom(loginAtom);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -53,6 +56,11 @@ const LoginForm = () => {
         const err = await res.json();
         throw new Error(err.message || "로그인 실패");
       }
+
+      const data = await res.json();
+
+      // 로그인 성공 시 상태 업데이트
+      login({ user: data.user });
 
       router.push("/");
     } catch (error) {

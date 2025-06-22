@@ -20,6 +20,9 @@ import {
   DtoGetReadPresignedURLResponse,
 } from "@/postfly-api-types";
 import styled from "@emotion/styled";
+import { useAtom } from "jotai";
+import Layout from "@/components/Layout";
+import { authAtom, checkAuthAtom } from "@/atoms/authAtom";
 
 const baseColumns = [
   { key: "packingID", name: "팩킹 ID", width: 200 },
@@ -100,6 +103,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: calc(100vw - 250px);
 `;
 
 const StatusFilter = styled.div`
@@ -398,6 +402,7 @@ const PackingDetailGrid = memo(
     const [imagesMap, setImagesMap] = useState<
       Record<string, DtoGetReadPresignedURLResponse[]>
     >({});
+    const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
 
     const { mutateAsync: getImages } = useMutation({
       mutationFn: (imagePaths: string[]) =>
@@ -416,38 +421,68 @@ const PackingDetailGrid = memo(
           if (detail.itemDetail?.length) {
             for (const item of detail.itemDetail) {
               if (item.images?.length) {
+                const imageKey = `${detail.packingDetailID}-${item.itemName}`;
+
+                // 이미 로드된 이미지나 로딩 중인 이미지는 건너뛰기
+                if (imagesMap[imageKey] || loadingImages.has(imageKey)) {
+                  newImagesMap[imageKey] = imagesMap[imageKey] || [];
+                  continue;
+                }
+
+                setLoadingImages((prev) => new Set(prev).add(imageKey));
+
                 try {
                   const response = await getImages(item.images);
                   const images = Array.isArray(response.data)
                     ? response.data
                     : [];
-                  newImagesMap[`${detail.packingDetailID}-${item.itemName}`] =
-                    images;
+                  newImagesMap[imageKey] = images;
                 } catch (error) {
                   console.error("이미지 로딩 실패:", error);
-                  newImagesMap[`${detail.packingDetailID}-${item.itemName}`] =
-                    [];
+                  newImagesMap[imageKey] = [];
+                } finally {
+                  setLoadingImages((prev) => {
+                    const newSet = new Set(prev);
+                    newSet.delete(imageKey);
+                    return newSet;
+                  });
                 }
               }
             }
           }
           if (detail.trackingInfo?.images?.length) {
+            const trackingKey = `${detail.packingDetailID}-tracking`;
+
+            // 이미 로드된 이미지나 로딩 중인 이미지는 건너뛰기
+            if (imagesMap[trackingKey] || loadingImages.has(trackingKey)) {
+              newImagesMap[trackingKey] = imagesMap[trackingKey] || [];
+              continue;
+            }
+
+            setLoadingImages((prev) => new Set(prev).add(trackingKey));
+
             try {
               const response = await getImages(detail.trackingInfo.images);
               const images = Array.isArray(response.data) ? response.data : [];
-              newImagesMap[`${detail.packingDetailID}-tracking`] = images;
+              newImagesMap[trackingKey] = images;
             } catch (error) {
               console.error("트래킹 이미지 로딩 실패:", error);
-              newImagesMap[`${detail.packingDetailID}-tracking`] = [];
+              newImagesMap[trackingKey] = [];
+            } finally {
+              setLoadingImages((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(trackingKey);
+                return newSet;
+              });
             }
           }
         }
 
-        setImagesMap(newImagesMap);
+        setImagesMap((prev) => ({ ...prev, ...newImagesMap }));
       };
 
       loadImages();
-    }, [packingDetails, getImages]);
+    }, [packingDetails, getImages, imagesMap, loadingImages]);
 
     const detailRows: DetailRow[] =
       packingDetails?.flatMap((detail) => {
@@ -623,8 +658,13 @@ const ListPageContent = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("status", packingStatus);
-    router.push(`?${params.toString()}`);
+    const currentStatus = params.get("status");
+
+    // 현재 URL의 상태와 packingStatus가 다를 때만 URL 업데이트
+    if (currentStatus !== packingStatus) {
+      params.set("status", packingStatus);
+      router.push(`?${params.toString()}`, { scroll: false }); // scroll: false로 스크롤 위치 유지
+    }
   }, [packingStatus, router, searchParams]);
 
   const handleStatusChange = useCallback((status: DomainPackingStatus) => {
@@ -654,9 +694,11 @@ const ListPageContent = () => {
       fetch(`/api/pack/list?packingStatus=${packingStatus}`).then((res) =>
         res.json()
       ),
-    staleTime: 30000,
-    gcTime: 5 * 60 * 1000,
-    retry: 3,
+    staleTime: 2 * 60 * 1000, // 2분으로 설정 (상태별로 다른 데이터이므로 적절한 시간)
+    gcTime: 5 * 60 * 1000, // 5분으로 설정
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 리페치 비활성화
+    refetchOnReconnect: false, // 네트워크 재연결 시 리페치 비활성화
+    retry: 2, // 재시도 횟수 감소
   });
 
   const { mutate: updatePackingStatus } = useMutation({
@@ -1164,12 +1206,82 @@ const ListPageContent = () => {
 };
 
 const ListPage = () => {
+  const [auth] = useAtom(authAtom);
+  const [, checkAuth] = useAtom(checkAuthAtom);
+  const router = useRouter();
+
+  useEffect(() => {
+    // 인증 체크가 완료되지 않은 경우에만 체크 실행
+    if (!auth.isChecked) {
+      checkAuth();
+    }
+  }, [checkAuth, auth.isChecked]);
+
+  useEffect(() => {
+    if (!auth.isLoading && !auth.isLoggedIn) {
+      alert("로그인이 필요합니다.");
+      router.push("/login");
+    }
+  }, [auth.isLoading, auth.isLoggedIn, router]);
+
+  if (auth.isLoading) {
+    return (
+      <Layout>
+        <Container>
+          <LoadingContent>
+            <LoadingSpinner />
+            <LoadingText>인증 확인 중...</LoadingText>
+          </LoadingContent>
+        </Container>
+      </Layout>
+    );
+  }
+
+  if (!auth.isLoggedIn) {
+    return null;
+  }
+
   return (
-    <Suspense fallback={<div>로딩 중...</div>}>
-      <ListPageContent />
-    </Suspense>
+    <Layout>
+      <Suspense fallback={<div>로딩 중...</div>}>
+        <ListPageContent />
+      </Suspense>
+    </Layout>
   );
 };
+
+const LoadingContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 16px;
+`;
+
+const LoadingSpinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const LoadingText = styled.p`
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+`;
 
 ListPage.displayName = "ListPage";
 
