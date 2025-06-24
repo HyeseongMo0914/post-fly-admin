@@ -7,6 +7,7 @@ import {
   useCallback,
   memo,
   Suspense,
+  useRef,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import "react-data-grid/lib/styles.css";
@@ -404,6 +405,19 @@ const PackingDetailGrid = memo(
     >({});
     const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
 
+    // useRef를 사용하여 최신 상태를 참조
+    const imagesMapRef = useRef(imagesMap);
+    const loadingImagesRef = useRef(loadingImages);
+
+    // 상태가 변경될 때마다 ref 업데이트
+    useEffect(() => {
+      imagesMapRef.current = imagesMap;
+    }, [imagesMap]);
+
+    useEffect(() => {
+      loadingImagesRef.current = loadingImages;
+    }, [loadingImages]);
+
     const { mutateAsync: getImages } = useMutation({
       mutationFn: (imagePaths: string[]) =>
         fetch("/api/image", {
@@ -412,77 +426,84 @@ const PackingDetailGrid = memo(
         }).then((res) => res.json()),
     });
 
-    useEffect(() => {
-      const loadImages = async () => {
-        const newImagesMap: Record<string, DtoGetReadPresignedURLResponse[]> =
-          {};
+    const loadImages = useCallback(async () => {
+      if (!packingDetails?.length) return;
 
-        for (const detail of packingDetails || []) {
-          if (detail.itemDetail?.length) {
-            for (const item of detail.itemDetail) {
-              if (item.images?.length) {
-                const imageKey = `${detail.packingDetailID}-${item.itemName}`;
+      const newImagesMap: Record<string, DtoGetReadPresignedURLResponse[]> = {};
 
-                // 이미 로드된 이미지나 로딩 중인 이미지는 건너뛰기
-                if (imagesMap[imageKey] || loadingImages.has(imageKey)) {
-                  newImagesMap[imageKey] = imagesMap[imageKey] || [];
-                  continue;
-                }
+      for (const detail of packingDetails) {
+        if (detail.itemDetail?.length) {
+          for (const item of detail.itemDetail) {
+            if (item.images?.length) {
+              const imageKey = `${detail.packingDetailID}-${item.itemName}`;
 
-                setLoadingImages((prev) => new Set(prev).add(imageKey));
+              // ref를 사용하여 최신 상태 확인
+              if (
+                imagesMapRef.current[imageKey] ||
+                loadingImagesRef.current.has(imageKey)
+              ) {
+                newImagesMap[imageKey] = imagesMapRef.current[imageKey] || [];
+                continue;
+              }
 
-                try {
-                  const response = await getImages(item.images);
-                  const images = Array.isArray(response.data)
-                    ? response.data
-                    : [];
-                  newImagesMap[imageKey] = images;
-                } catch (error) {
-                  console.error("이미지 로딩 실패:", error);
-                  newImagesMap[imageKey] = [];
-                } finally {
-                  setLoadingImages((prev) => {
-                    const newSet = new Set(prev);
-                    newSet.delete(imageKey);
-                    return newSet;
-                  });
-                }
+              setLoadingImages((prev) => new Set(prev).add(imageKey));
+
+              try {
+                const response = await getImages(item.images);
+                const images = Array.isArray(response.data)
+                  ? response.data
+                  : [];
+                newImagesMap[imageKey] = images;
+              } catch (error) {
+                console.error("이미지 로딩 실패:", error);
+                newImagesMap[imageKey] = [];
+              } finally {
+                setLoadingImages((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(imageKey);
+                  return newSet;
+                });
               }
             }
           }
-          if (detail.trackingInfo?.images?.length) {
-            const trackingKey = `${detail.packingDetailID}-tracking`;
+        }
+        if (detail.trackingInfo?.images?.length) {
+          const trackingKey = `${detail.packingDetailID}-tracking`;
 
-            // 이미 로드된 이미지나 로딩 중인 이미지는 건너뛰기
-            if (imagesMap[trackingKey] || loadingImages.has(trackingKey)) {
-              newImagesMap[trackingKey] = imagesMap[trackingKey] || [];
-              continue;
-            }
+          // ref를 사용하여 최신 상태 확인
+          if (
+            imagesMapRef.current[trackingKey] ||
+            loadingImagesRef.current.has(trackingKey)
+          ) {
+            newImagesMap[trackingKey] = imagesMapRef.current[trackingKey] || [];
+            continue;
+          }
 
-            setLoadingImages((prev) => new Set(prev).add(trackingKey));
+          setLoadingImages((prev) => new Set(prev).add(trackingKey));
 
-            try {
-              const response = await getImages(detail.trackingInfo.images);
-              const images = Array.isArray(response.data) ? response.data : [];
-              newImagesMap[trackingKey] = images;
-            } catch (error) {
-              console.error("트래킹 이미지 로딩 실패:", error);
-              newImagesMap[trackingKey] = [];
-            } finally {
-              setLoadingImages((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(trackingKey);
-                return newSet;
-              });
-            }
+          try {
+            const response = await getImages(detail.trackingInfo.images);
+            const images = Array.isArray(response.data) ? response.data : [];
+            newImagesMap[trackingKey] = images;
+          } catch (error) {
+            console.error("트래킹 이미지 로딩 실패:", error);
+            newImagesMap[trackingKey] = [];
+          } finally {
+            setLoadingImages((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(trackingKey);
+              return newSet;
+            });
           }
         }
+      }
 
-        setImagesMap((prev) => ({ ...prev, ...newImagesMap }));
-      };
+      setImagesMap((prev) => ({ ...prev, ...newImagesMap }));
+    }, [packingDetails, getImages]); // imagesMap과 loadingImages를 의존성에서 제거
 
+    useEffect(() => {
       loadImages();
-    }, [packingDetails, getImages, imagesMap, loadingImages]);
+    }, [loadImages]);
 
     const detailRows: DetailRow[] =
       packingDetails?.flatMap((detail) => {
@@ -648,6 +669,15 @@ const ListPageContent = () => {
     trackingNumber: "",
   });
 
+  // rows 상태를 ref로 관리
+  const [rows, setRows] = useState<PackingRow[]>([]);
+  const rowsRef = useRef(rows);
+
+  // rows가 변경될 때마다 ref 업데이트
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
+
   const formatNumber = (value: string) => {
     return value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
@@ -812,8 +842,6 @@ const ListPageContent = () => {
     },
   });
 
-  const [rows, setRows] = useState<PackingRow[]>([]);
-
   useEffect(() => {
     if (data?.data?.packings) {
       const masterRows = data.data.packings.map((packing: DtoPackingDTO) => ({
@@ -910,7 +938,7 @@ const ListPageContent = () => {
                   const newSelectAll = e.target.checked;
                   setSelectAll(newSelectAll);
                   if (newSelectAll) {
-                    const allPackingIds = rows
+                    const allPackingIds = rowsRef.current
                       .filter((row) => row.type === "MASTER")
                       .map((row) => row.packingID);
                     setSelectedRows(new Set(allPackingIds));
@@ -977,7 +1005,7 @@ const ListPageContent = () => {
       },
       ...baseColumns,
     ],
-    [data?.data?.packings, selectedRows, selectAll, rows]
+    [data?.data?.packings, selectedRows, selectAll]
   );
 
   const onRowsChange = (
